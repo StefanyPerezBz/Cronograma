@@ -10,42 +10,7 @@ DIAS_ALERTA_POR_VENCER = 5
 
 st.set_page_config(page_title="Cronograma Personal", layout="wide")
 st.markdown(
-    """
-    <style>
-    .block-container{padding-top:1rem;padding-bottom:1rem;max-width:100%;}
-
-    /* Navegación con look de pestañas, construida sobre st.radio (ver nota
-       más abajo sobre por qué no se usa st.tabs()). */
-    div[data-testid="stRadio"] > div[role="radiogroup"] {
-        display:flex;flex-wrap:wrap;gap:4px;
-        border-bottom:2px solid rgba(128,128,128,0.35);
-        margin-bottom:12px;
-    }
-    div[data-testid="stRadio"] label[data-baseweb="radio"] {
-        padding:8px 18px 6px 18px;
-        margin:0;
-        border-bottom:3px solid transparent;
-        border-radius:6px 6px 0 0;
-        transition:background .15s;
-    }
-    div[data-testid="stRadio"] label[data-baseweb="radio"]:hover {
-        background:rgba(46,95,163,0.10);
-    }
-    div[data-testid="stRadio"] label[data-baseweb="radio"] > div:first-child {
-        display:none;
-    }
-    div[data-testid="stRadio"] label[data-baseweb="radio"] div[data-testid="stMarkdownContainer"] p {
-        font-size:15px;
-    }
-    div[data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) {
-        border-bottom:3px solid #2E5FA3;
-    }
-    div[data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) p {
-        font-weight:800;
-        color:#2E5FA3;
-    }
-    </style>
-    """,
+    "<style>.block-container{padding-top:1rem;padding-bottom:1rem;max-width:100%;}</style>",
     unsafe_allow_html=True,
 )
 
@@ -62,15 +27,27 @@ if anios_archivados:
     )
 
 SECCIONES = ["Dashboard", "Alertas", "Gráficos", "Actividades", "Categorías", "Configuración", "Histórico"]
-if "seccion_activa" not in st.session_state:
-    st.session_state["seccion_activa"] = SECCIONES[0]
 
-# st.tabs() no recuerda la pestaña activa entre reruns (cada st.rerun() vuelve
-# a la primera). Por eso la navegación es un radio guardado en session_state,
-# que sí persiste tras guardar/editar/eliminar.
-active_tab = st.radio(
-    "Navegación", SECCIONES, horizontal=True, key="seccion_activa", label_visibility="collapsed"
-)
+# Navegación basada en la URL (?tab=...) en vez de st.radio/st.tabs: no
+# depende de la estructura HTML interna de Streamlit (que cambia entre
+# versiones y rompe CSS hechos a medida), y al vivir en la URL sobrevive
+# automáticamente a cualquier st.rerun() sin lógica extra.
+active_tab = st.query_params.get("tab", SECCIONES[0])
+if active_tab not in SECCIONES:
+    active_tab = SECCIONES[0]
+
+nav_cols = st.columns(len(SECCIONES))
+for col, seccion in zip(nav_cols, SECCIONES):
+    es_activa = seccion == active_tab
+    if col.button(
+        seccion,
+        key=f"nav_{seccion}",
+        type="primary" if es_activa else "secondary",
+        use_container_width=True,
+    ):
+        st.query_params["tab"] = seccion
+        st.rerun()
+st.divider()
 
 # ---------------------------------------------------------------------------
 # Dashboard

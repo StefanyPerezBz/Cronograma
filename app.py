@@ -10,7 +10,7 @@ DIAS_ALERTA_POR_VENCER = 5
 
 st.set_page_config(page_title="Cronograma Personal", layout="wide")
 st.markdown(
-    "<style>.block-container{padding-top:1rem;padding-bottom:1rem;max-width:100%;}</style>",
+    "<style>.block-container{padding-bottom:1rem;max-width:100%;}</style>",
     unsafe_allow_html=True,
 )
 
